@@ -1,2 +1,3 @@
 gateway-service/src/main/resources/application.properties
 eureka-server/src/main/resources/application.properties
+produto-server/src/main/resources/application.properties
