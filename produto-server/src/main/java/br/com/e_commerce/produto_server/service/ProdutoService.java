@@ -7,4 +7,5 @@ public interface ProdutoService {
 	
 	ProdutoRespostaCriacaoDto criaProduto(ProdutoDto produtoDto); 
 
+	ProdutoDto procuraProdutoPeloCodigo(String codigo);
 }

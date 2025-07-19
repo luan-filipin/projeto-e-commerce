@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import br.com.e_commerce.produto_server.dto.ProdutoDto;
 import br.com.e_commerce.produto_server.dto.ProdutoRespostaCriacaoDto;
 import br.com.e_commerce.produto_server.entity.Produto;
+import br.com.e_commerce.produto_server.exception.CodigoNaoExisteException;
 import br.com.e_commerce.produto_server.mapper.ProdutoMapper;
 import br.com.e_commerce.produto_server.mapper.ProdutoRespostaCriacaoMapper;
 import br.com.e_commerce.produto_server.repository.ProdutoRepository;
@@ -28,4 +29,11 @@ public class ProdutoServiceImp implements ProdutoService{
 		return produtoRespostaCriacaoMapper.toDto(produtoSalvo);
 	}
 
+
+	@Override
+	public ProdutoDto procuraProdutoPeloCodigo(String codigo) {
+		Produto produtoEntity = produtoRepository.findByCodigo(codigo)
+				.orElseThrow(CodigoNaoExisteException::new);
+		return produtoMapper.toDto(produtoEntity);
+	}
 }

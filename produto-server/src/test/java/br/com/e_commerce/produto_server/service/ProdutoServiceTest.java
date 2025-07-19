@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import org.joda.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import br.com.e_commerce.produto_server.dto.ProdutoDto;
 import br.com.e_commerce.produto_server.dto.ProdutoRespostaCriacaoDto;
 import br.com.e_commerce.produto_server.entity.Produto;
 import br.com.e_commerce.produto_server.exception.CodigoJaExisteException;
+import br.com.e_commerce.produto_server.exception.CodigoNaoExisteException;
 import br.com.e_commerce.produto_server.mapper.ProdutoMapper;
 import br.com.e_commerce.produto_server.mapper.ProdutoRespostaCriacaoMapper;
 import br.com.e_commerce.produto_server.repository.ProdutoRepository;
@@ -81,7 +83,6 @@ public class ProdutoServiceTest {
 		verify(produtoMapper).toEntity(produtoEntrada);
 		verify(produtoRepository).save(produtoEntity);
 		verify(produtoRespostaCriacaoMapper).toDto(produtoSalvo);
-
 	}
 	
 	@Test
@@ -108,5 +109,54 @@ public class ProdutoServiceTest {
 		assertEquals("Este codigo ja esta cadastrado!", exception.getMessage());
 		
 		verify(produtoRepository, never()).save(any());
+	}
+	
+	@Test
+	public void deveProcuraProdutoPeloCodigoComSucesso() {
+		// Arrange
+		String codigo = "1";
+		String nome = "Mouse Gamer RGB";
+		String descricao = "Mouse ergonômico com iluminação RGB e 6 botões programáveis.";
+		BigDecimal preco = new BigDecimal("149.90");
+		Integer quantidade = 120;
+		String categoria = "Periféricos";
+		String imagemUrl = "https://minha-loja.com/imagens/produtos/mouse-gamer-rgb.jpg";
+
+		ProdutoDto produtoDto = new ProdutoDto(codigo, nome, descricao, preco, quantidade, categoria, imagemUrl,
+				true);
+		
+		Produto produtoEntity = new Produto(1L, codigo, nome, descricao, preco, quantidade, categoria, imagemUrl, null,
+				null, true);
+		
+		when(produtoRepository.findByCodigo(codigo)).thenReturn(Optional.of(produtoEntity));
+		when(produtoMapper.toDto(produtoEntity)).thenReturn(produtoDto);
+		
+		// Act & Assert
+		ProdutoDto result = produtoServiceImp.procuraProdutoPeloCodigo(codigo);
+		
+		assertNotNull(result);
+		assertEquals(produtoDto, result);
+		assertEquals(produtoDto.codigo(), result.codigo());
+		assertEquals(produtoDto.nome(), result.nome());
+		
+		verify(produtoRepository).findByCodigo(codigo);
+		verify(produtoMapper).toDto(produtoEntity);	
+	}
+	
+	@Test
+	public void deveFalharAoProcurarProdutoPeloCodigo() {
+
+		String codigo = "0";
+
+	    when(produtoRepository.findByCodigo(codigo)).thenReturn(Optional.empty());
+		
+		CodigoNaoExisteException exception = assertThrows(CodigoNaoExisteException.class, ()->{
+			produtoServiceImp.procuraProdutoPeloCodigo(codigo);
+		});
+		
+		assertEquals("O codigo do produto não existe!", exception.getMessage());
+	    
+		verify(produtoMapper, never()).toDto(any());
+		
 	}
 }
