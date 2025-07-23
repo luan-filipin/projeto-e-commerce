@@ -1,16 +1,22 @@
 package br.com.e_commerce.produto_server.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
-import org.apache.hc.core5.http.ContentType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,7 +50,7 @@ public class ProdutoControllerTest {
 	private ProdutoService produtoService;
 
 	@Test
-	void deveCriarProdutoQuandoARequisicaoForValida() throws Exception {
+	public void deveCriarProdutoQuandoARequisicaoForValida() throws Exception {
 
 		ProdutoDto produtoDto = new ProdutoDto("PROD98231", "Fone Bluetooth X500",
 				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
@@ -61,7 +67,7 @@ public class ProdutoControllerTest {
 	}
 
 	@Test
-	void deveRetornarErro400QuandoDadosObrigatoriosForemInvalidos() throws Exception {
+	public void deveRetornarErro400QuandoDadosObrigatoriosForemInvalidos() throws Exception {
 
 		ProdutoDto produtoInvalido = new ProdutoDto("PROD001", "", "Descrição válida", new BigDecimal("99.90"), 10,
 				"Categoria válida", "https://exemplo.com/imagem.jpg", true);
@@ -71,7 +77,7 @@ public class ProdutoControllerTest {
 	}
 
 	@Test
-	void deveRetornarOprodutoPeloCodigo() throws Exception{
+	public void deveRetornarOprodutoPeloCodigo() throws Exception{
 
 		String codigo = "PROD001";
 
@@ -92,7 +98,7 @@ public class ProdutoControllerTest {
 	}
 
 	@Test
-	void deveRetornar404QuandoCodigoNaoExistir()throws Exception{
+	public void deveRetornar404QuandoCodigoNaoExistir()throws Exception{
 		
 	    String codigoInvalido = "CODIGO_INEXISTENTE";
 
@@ -106,5 +112,55 @@ public class ProdutoControllerTest {
 	    .andExpect(jsonPath("$.path").value("/api/produtos/" + codigoInvalido))
 	    .andExpect(jsonPath("$.timestamp").exists());
 		
+	}
+	
+	@Test
+	public void deveRetornarTodosOsProdutosPaginados()throws Exception{
+				
+		ProdutoDto produtoDto1 = new ProdutoDto("PROD98231", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		ProdutoDto produtoDto2 = new ProdutoDto("PROD98831", "Fone Bluetooth teste",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		List<ProdutoDto> listaDeProdutos = List.of(produtoDto1, produtoDto2);
+		
+		Page<ProdutoDto> paginaDeProdutos = new PageImpl<>(listaDeProdutos, PageRequest.of(0, 10, Sort.by("name").ascending()), listaDeProdutos.size());
+		
+		when(produtoService.retornaTodosOsprodutos(any(Pageable.class))).thenReturn(paginaDeProdutos);
+		
+		mockMvc.perform(get("/api/produtos")
+				.param("page", "0")
+				.param("size", "10")
+				.param("sort", "nome, asc")
+				.contentType(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.content.length()").value(2))
+		.andExpect(jsonPath("$.content[0].nome").value("Fone Bluetooth X500"))
+		.andExpect(jsonPath("$.content[1].nome").value("Fone Bluetooth teste"))
+		.andExpect(jsonPath("$.totalElements").value(2))
+		.andExpect(jsonPath("$.totalPages").value(1))
+		.andExpect(jsonPath("$.size").value(10))
+		.andExpect(jsonPath("$.number").value(0));
+	}
+	
+	@Test
+	public void deveRetornarStatus500QuandoServiceFalharAoListarProdutos()throws Exception{
+		
+		Page<ProdutoDto> paginasDeProdutosVazia = Page.empty();
+		
+		when(produtoService.retornaTodosOsprodutos(any(Pageable.class))).thenReturn(paginasDeProdutosVazia);
+		
+		mockMvc.perform(get("/api/produtos")
+				.param("page", "0")
+				.param("size", "20")
+				.param("sorte", "nome, asc")
+				.contentType(MediaType.APPLICATION_JSON))
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.content").isArray())
+		.andExpect(jsonPath("$.content.length()").value(0))
+		.andExpect(jsonPath("$.totalElements").value(0));
 	}
 }
