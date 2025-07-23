@@ -12,6 +12,6 @@ public record ProdutoDto(
 		@NotNull(message = "O campo 'preco' é obrigatorio")BigDecimal preco,
 		@NotNull(message = "O campo 'quantidadeEstoque' é obrigatorio")Integer quantidadeEstoque,
 		@NotBlank(message = "O campo 'categoria' é obrigatorio")String categoria,
-		@NotBlank(message = "O campo 'imageUrl' é obrigatorio")String imageUrl,
+		@NotBlank(message = "O campo 'imageUrl' é obrigatorio")String imagemUrl,
 		@NotNull(message = "O campo 'ativo' é obrigatório") Boolean ativo) {
 }
