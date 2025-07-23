@@ -1,5 +1,9 @@
 package br.com.e_commerce.produto_server.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.com.e_commerce.produto_server.dto.ProdutoDto;
@@ -35,5 +39,12 @@ public class ProdutoServiceImp implements ProdutoService{
 		Produto produtoEntity = produtoRepository.findByCodigo(codigo)
 				.orElseThrow(CodigoNaoExisteException::new);
 		return produtoMapper.toDto(produtoEntity);
+	}
+
+
+	@Override
+	public Page<ProdutoDto> retornaTodosOsprodutos(Pageable pageable) {
+		Page<Produto> todosProdutos = produtoRepository.findAll(pageable);
+		return todosProdutos.map(produtoMapper::toDto);
 	}
 }
