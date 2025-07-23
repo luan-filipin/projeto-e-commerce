@@ -1,6 +1,5 @@
 package br.com.e_commerce.produto_server.service;
 
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +13,7 @@ import br.com.e_commerce.produto_server.mapper.ProdutoMapper;
 import br.com.e_commerce.produto_server.mapper.ProdutoRespostaCriacaoMapper;
 import br.com.e_commerce.produto_server.repository.ProdutoRepository;
 import br.com.e_commerce.produto_server.service.validador.ProdutoValidador;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -47,4 +47,14 @@ public class ProdutoServiceImp implements ProdutoService{
 		Page<Produto> todosProdutos = produtoRepository.findAll(pageable);
 		return todosProdutos.map(produtoMapper::toDto);
 	}
+	
+	@Override
+	@Transactional
+	public void deletaProdutoPeloCodigo(String codigo) {
+	    Produto produto = produtoRepository.findByCodigo(codigo)
+	            .orElseThrow(() -> new CodigoNaoExisteException());
+	    produtoRepository.delete(produto);		
+	}
+	
+	
 }

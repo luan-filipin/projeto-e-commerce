@@ -14,4 +14,6 @@ public interface ProdutoService {
 	ProdutoDto procuraProdutoPeloCodigo(String codigo);
 	
 	Page<ProdutoDto> retornaTodosOsprodutos(Pageable pageable);
+	
+	void deletaProdutoPeloCodigo(String codigo);
 }
