@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -53,9 +54,9 @@ public class ProdutoServiceTest {
 	@InjectMocks
 	private ProdutoServiceImp produtoServiceImp;
 
+	@DisplayName("Deve criar um produto com sucesso.")
 	@Test
 	public void deveCriarProdutoComSucesso() {
-
 		String codigo = "1";
 		String nome = "Mouse Gamer RGB";
 		String descricao = "Mouse ergonômico com iluminação RGB e 6 botões programáveis.";
@@ -92,7 +93,8 @@ public class ProdutoServiceTest {
 		verify(produtoRepository).save(produtoEntity);
 		verify(produtoRespostaCriacaoMapper).toDto(produtoSalvo);
 	}
-
+	
+	@DisplayName("Deve falahar ao tentar criar um produto com o codigo ja existente.")
 	@Test
 	public void deveFalharAoCriarUmProduto() {
 
@@ -117,7 +119,8 @@ public class ProdutoServiceTest {
 
 		verify(produtoRepository, never()).save(any());
 	}
-
+	
+	@DisplayName("Deve retornar o produto pesquisado pelo codigo com sucesso.")
 	@Test
 	public void deveProcuraProdutoPeloCodigoComSucesso() {
 		// Arrange
@@ -148,7 +151,8 @@ public class ProdutoServiceTest {
 		verify(produtoRepository).findByCodigo(codigo);
 		verify(produtoMapper).toDto(produtoEntity);
 	}
-
+	
+	@DisplayName("Deve falahar ao produto um produto pelo codigo.")
 	@Test
 	public void deveFalharAoProcurarProdutoPeloCodigo() {
 
@@ -165,7 +169,8 @@ public class ProdutoServiceTest {
 		verify(produtoMapper, never()).toDto(any());
 
 	}
-
+	
+	@DisplayName("Deve retornar todos os produtos do banco paginados")
 	@Test
 	public void deveRetornarTodosOsProdutos() {
 
@@ -208,7 +213,7 @@ public class ProdutoServiceTest {
 		verify(produtoMapper).toDto(produto1);
 		verify(produtoMapper).toDto(produto2);
 	}
-	
+	@DisplayName("Deve retornar uma lista vazia quando nao tem produto")
 	@Test
 	public void deveRetornarPaginaVaziaQuandoNaoExistemProdutos() {
 		
@@ -224,5 +229,43 @@ public class ProdutoServiceTest {
 		
 		verify(produtoRepository, times(1)).findAll(pageable);
 		
+	}
+	
+	@DisplayName("Deve deletar o produto pelo codigo")
+	@Test
+	public void deveDeletarOProdutopeloCodigo() {
+		
+		String codigo = "111111";
+		
+		LocalDateTime dataFixa = LocalDateTime.of(2024, 1, 1, 12, 0);
+
+		Produto produto1 = new Produto(1L, "PROD98231", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", dataFixa,
+				dataFixa, true);
+		
+		when(produtoRepository.findByCodigo(codigo)).thenReturn(Optional.of(produto1));
+		
+		produtoServiceImp.deletaProdutoPeloCodigo(codigo);
+		
+		verify(produtoRepository).findByCodigo(codigo);
+		verify(produtoRepository).delete(produto1);	
+	}
+	
+	@DisplayName("Deve lançar exceção ao tentar deletar produto com código inexistente")
+	@Test
+	public void deveFalharAoTentarDeletarOProduto() {
+		
+		String codigoInexistente = "00000";
+		
+		when(produtoRepository.findByCodigo(codigoInexistente)).thenReturn(Optional.empty());
+		
+		CodigoNaoExisteException exception = assertThrows(CodigoNaoExisteException.class, () -> {
+			produtoServiceImp.deletaProdutoPeloCodigo(codigoInexistente);
+		});
+		
+		assertEquals("O codigo do produto não existe!", exception.getMessage());
+
+		verify(produtoRepository, never()).delete(any());
 	}
 }
