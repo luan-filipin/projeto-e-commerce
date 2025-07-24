@@ -1,6 +1,8 @@
 package br.com.e_commerce.produto_server.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -162,5 +165,30 @@ public class ProdutoControllerTest {
 		.andExpect(jsonPath("$.content").isArray())
 		.andExpect(jsonPath("$.content.length()").value(0))
 		.andExpect(jsonPath("$.totalElements").value(0));
+	}
+	
+	@Test
+	public void deveDeletarOProdutoPeloCodigo()throws Exception{
+		
+		String codigo = "1111111";
+		
+		doNothing().when(produtoService).deletaProdutoPeloCodigo(codigo);
+		
+		mockMvc.perform(delete("/api/produtos/{codigo}", codigo))
+		.andExpect(status().isNoContent());
+		
+	}
+	
+	@Test
+	public void deveRetornarFalhaSeOCodigoNaoExistir()throws Exception{
+		
+		String codigoNaoExiste = "00000000";
+		
+		doThrow(new CodigoNaoExisteException()).when(produtoService).deletaProdutoPeloCodigo(codigoNaoExiste);
+		
+		mockMvc.perform(delete("/api/produtos/{codigo}", codigoNaoExiste))
+		.andExpect(status().isNotFound())
+		.andExpect(jsonPath("$.status").value(404))
+		.andExpect(jsonPath("$.message").value("O codigo do produto não existe!"));
 	}
 }
