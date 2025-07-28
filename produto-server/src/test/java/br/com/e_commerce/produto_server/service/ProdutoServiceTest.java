@@ -93,7 +93,7 @@ public class ProdutoServiceTest {
 		verify(produtoRepository).save(produtoEntity);
 		verify(produtoRespostaCriacaoMapper).toDto(produtoSalvo);
 	}
-	
+
 	@DisplayName("Deve falahar ao tentar criar um produto com o codigo ja existente.")
 	@Test
 	public void deveFalharAoCriarUmProduto() {
@@ -119,7 +119,58 @@ public class ProdutoServiceTest {
 
 		verify(produtoRepository, never()).save(any());
 	}
-	
+
+	@DisplayName("Deve criar mais de um produto com sucesso.")
+	@Test
+	public void deveCriarProdutoEmLoteComSucesso() {
+
+		ProdutoDto produto1 = new ProdutoDto("PROD98231", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		ProdutoDto produto2 = new ProdutoDto("PROD98831", "Fone Bluetooth teste",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		List<ProdutoDto> entrada = List.of(produto1, produto2);
+		List<Produto> entidades = List.of(new Produto(), new Produto());
+
+		when(produtoRepository.findCodigosExistentes(List.of("PROD98231", "PROD98831")))
+				.thenReturn(Collections.emptyList());
+
+		when(produtoMapper.toEntityList(entrada)).thenReturn(entidades);
+		when(produtoRepository.saveAll(entidades)).thenReturn(entidades);
+		when(produtoMapper.toDtoList(entidades)).thenReturn(entrada);
+
+		List<ProdutoDto> result = produtoServiceImp.criaProdutosEmLote(entrada);
+
+		assertEquals(2, result.size());
+		assertEquals("PROD98231", result.get(0).codigo());
+		assertEquals("PROD98831", result.get(1).codigo());
+
+		verify(produtoRepository).saveAll(entidades);
+	}
+
+	@DisplayName("Deve lançar exception quando o codigo ja existir")
+	@Test
+	public void deveLancarExceptionQuandoOCodigoJaExistir() {
+
+		ProdutoDto produtoDto = new ProdutoDto("PROD98231", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		List<ProdutoDto> entrada = List.of(produtoDto);
+
+		when(produtoRepository.findCodigosExistentes(List.of("PROD98231"))).thenReturn(List.of("PROD98231"));
+
+		CodigoJaExisteException exception = assertThrows(CodigoJaExisteException.class,
+				() -> produtoServiceImp.criaProdutosEmLote(entrada));
+		
+		assertTrue(exception.getMessage().contains("PROD98231"));
+		verify(produtoRepository, never()).saveAll(any());
+
+	}
+
 	@DisplayName("Deve retornar o produto pesquisado pelo codigo com sucesso.")
 	@Test
 	public void deveProcuraProdutoPeloCodigoComSucesso() {
@@ -151,7 +202,7 @@ public class ProdutoServiceTest {
 		verify(produtoRepository).findByCodigo(codigo);
 		verify(produtoMapper).toDto(produtoEntity);
 	}
-	
+
 	@DisplayName("Deve falahar ao produto um produto pelo codigo.")
 	@Test
 	public void deveFalharAoProcurarProdutoPeloCodigo() {
@@ -169,7 +220,7 @@ public class ProdutoServiceTest {
 		verify(produtoMapper, never()).toDto(any());
 
 	}
-	
+
 	@DisplayName("Deve retornar todos os produtos do banco paginados")
 	@Test
 	public void deveRetornarTodosOsProdutos() {
@@ -201,69 +252,70 @@ public class ProdutoServiceTest {
 		when(produtoRepository.findAll(pageable)).thenReturn(paginaProduto);
 		when(produtoMapper.toDto(produto1)).thenReturn(produtoDto1);
 		when(produtoMapper.toDto(produto2)).thenReturn(produtoDto2);
-		
+
 		Page<ProdutoDto> resultado = produtoServiceImp.retornaTodosOsprodutos(pageable);
-		
+
 		assertNotNull(resultado);
 		assertEquals(2, resultado.getContent().size());
 		assertEquals("Fone Bluetooth X500", resultado.getContent().get(0).nome());
 		assertEquals("Fone Bluetooth teste", resultado.getContent().get(1).nome());
-		
+
 		verify(produtoRepository).findAll(pageable);
 		verify(produtoMapper).toDto(produto1);
 		verify(produtoMapper).toDto(produto2);
 	}
+
 	@DisplayName("Deve retornar uma lista vazia quando nao tem produto")
 	@Test
 	public void deveRetornarPaginaVaziaQuandoNaoExistemProdutos() {
-		
+
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Produto> paginaVazia = new PageImpl<>(Collections.emptyList());
-		
+
 		when(produtoRepository.findAll(pageable)).thenReturn(paginaVazia);
-		
+
 		Page<ProdutoDto> resultado = produtoServiceImp.retornaTodosOsprodutos(pageable);
-		
+
 		assertNotNull(resultado);
 		assertTrue(resultado.isEmpty());
-		
+
 		verify(produtoRepository, times(1)).findAll(pageable);
-		
+
 	}
-	
+
 	@DisplayName("Deve deletar o produto pelo codigo")
 	@Test
 	public void deveDeletarOProdutopeloCodigo() {
-		
+
 		String codigo = "111111";
-		
+
 		LocalDateTime dataFixa = LocalDateTime.of(2024, 1, 1, 12, 0);
 
 		Produto produto1 = new Produto(1L, "PROD98231", "Fone Bluetooth X500",
 				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
 				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", dataFixa,
 				dataFixa, true);
-		
+
 		when(produtoRepository.findByCodigo(codigo)).thenReturn(Optional.of(produto1));
-		
+
 		produtoServiceImp.deletaProdutoPeloCodigo(codigo);
-		
+
 		verify(produtoRepository).findByCodigo(codigo);
-		verify(produtoRepository).delete(produto1);	
+		verify(produtoRepository).delete(produto1);
 	}
-	
+
 	@DisplayName("Deve lançar exceção ao tentar deletar produto com código inexistente")
 	@Test
 	public void deveFalharAoTentarDeletarOProduto() {
-		
+
 		String codigoInexistente = "00000";
-		
+
 		when(produtoRepository.findByCodigo(codigoInexistente)).thenReturn(Optional.empty());
-		
+
 		CodigoNaoExisteException exception = assertThrows(CodigoNaoExisteException.class, () -> {
 			produtoServiceImp.deletaProdutoPeloCodigo(codigoInexistente);
 		});
-		
+
 		assertEquals("O codigo do produto não existe!", exception.getMessage());
 
 		verify(produtoRepository, never()).delete(any());
