@@ -7,4 +7,8 @@ public class CodigoJaExisteException extends RuntimeException{
 	public CodigoJaExisteException() {
 		super(CODIGO_JA_EXISTE);
 	}
+	
+    public CodigoJaExisteException(String mensagemPersonalizada) {
+        super(mensagemPersonalizada);
+    }
 }

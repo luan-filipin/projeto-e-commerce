@@ -1,6 +1,8 @@
 package br.com.e_commerce.produto_server.service;
 
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 import br.com.e_commerce.produto_server.dto.ProdutoDto;
 import br.com.e_commerce.produto_server.dto.ProdutoRespostaCriacaoDto;
 import br.com.e_commerce.produto_server.entity.Produto;
+import br.com.e_commerce.produto_server.exception.CodigoJaExisteException;
 import br.com.e_commerce.produto_server.exception.CodigoNaoExisteException;
 import br.com.e_commerce.produto_server.mapper.ProdutoMapper;
 import br.com.e_commerce.produto_server.mapper.ProdutoRespostaCriacaoMapper;
@@ -33,6 +36,28 @@ public class ProdutoServiceImp implements ProdutoService{
 		return produtoRespostaCriacaoMapper.toDto(produtoSalvo);
 	}
 
+	@Override
+	public List<ProdutoDto> criaProdutosEmLote(List<ProdutoDto> produtosDto) {
+		
+		//Extrai todos os codigo enviados.
+		List<String> codigos = produtosDto.stream()
+				.map(ProdutoDto::codigo)
+				.toList();
+		
+		//Verificar no banco quais desses códigos já existem.
+		List<String> codigosJaExistentes = produtoRepository.findCodigosExistentes(codigos);
+		
+		// Se houver duplicado lança a exception.
+		if(!codigosJaExistentes.isEmpty()) {
+			throw new CodigoJaExisteException("Os seguintes códigos já existem: " + codigosJaExistentes);
+		}
+		
+		List<Produto> entidades = produtoMapper.toEntityList(produtosDto);
+		
+		List<Produto> salvos = produtoRepository.saveAll(entidades);
+		
+		return produtoMapper.toDtoList(salvos);
+	}
 
 	@Override
 	public ProdutoDto procuraProdutoPeloCodigo(String codigo) {
@@ -55,6 +80,8 @@ public class ProdutoServiceImp implements ProdutoService{
 	            .orElseThrow(() -> new CodigoNaoExisteException());
 	    produtoRepository.delete(produto);		
 	}
+
+
 	
 	
 }
