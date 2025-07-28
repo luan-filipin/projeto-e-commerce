@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import br.com.e_commerce.produto_server.dto.ProdutoDto;
 import br.com.e_commerce.produto_server.dto.ProdutoRespostaCriacaoDto;
 import br.com.e_commerce.produto_server.entity.Produto;
+import br.com.e_commerce.produto_server.exception.CodigoDoProdutoInvalidoException;
 import br.com.e_commerce.produto_server.exception.CodigoJaExisteException;
 import br.com.e_commerce.produto_server.exception.CodigoNaoExisteException;
 import br.com.e_commerce.produto_server.mapper.ProdutoMapper;
@@ -165,7 +166,7 @@ public class ProdutoServiceTest {
 
 		CodigoJaExisteException exception = assertThrows(CodigoJaExisteException.class,
 				() -> produtoServiceImp.criaProdutosEmLote(entrada));
-		
+
 		assertTrue(exception.getMessage().contains("PROD98231"));
 		verify(produtoRepository, never()).saveAll(any());
 
@@ -320,4 +321,94 @@ public class ProdutoServiceTest {
 
 		verify(produtoRepository, never()).delete(any());
 	}
+
+	@DisplayName("Deve atualizar um produto pelo codigo com sucesso")
+	@Test
+	public void deveAtualizarUmProdutoPeloCodigoComSucesso() throws Exception {
+
+		String codigo = "PROD98231";
+
+		ProdutoDto dto = new ProdutoDto(codigo, "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		LocalDateTime dataFixa = LocalDateTime.of(2024, 1, 1, 12, 0);
+
+		Produto entidade = new Produto(1L, "PROD98231", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", dataFixa,
+				dataFixa, true);
+
+		when(produtoRepository.findByCodigo(codigo)).thenReturn(Optional.of(entidade));
+		doNothing().when(produtoMapper).atualizaDoDto(dto, entidade);
+		when(produtoRepository.save(entidade)).thenReturn(entidade);
+		when(produtoMapper.toDto(entidade)).thenReturn(dto);
+
+		ProdutoDto produtoAtualizado = produtoServiceImp.atualizaProdutoPeloCodigo(codigo, dto);
+
+		assertNotNull(produtoAtualizado);
+		assertEquals(codigo, produtoAtualizado.codigo());
+
+		verify(produtoRepository).findByCodigo(codigo);
+		verify(produtoMapper).atualizaDoDto(dto, entidade);
+		verify(produtoRepository).save(entidade);
+		verify(produtoMapper).toDto(entidade);
+	}
+
+	@DisplayName("Deve Lançar uma exception pois o codigo nao existe no banco para atualizar")
+	@Test
+	public void deveLancarExceptionParaOCodigoInexistente() throws Exception{
+		
+		String codigo = "0000000";
+		
+		ProdutoDto dto = new ProdutoDto(codigo, "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		
+		when(produtoRepository.findByCodigo(codigo)).thenReturn(Optional.empty());
+		
+		CodigoNaoExisteException exception = assertThrows(CodigoNaoExisteException.class , () -> 
+		produtoServiceImp.atualizaProdutoPeloCodigo(codigo, dto));
+		
+		assertEquals(exception.getMessage(), "O codigo do produto não existe!");
+		
+		// Nenhuma ação deve ser executada se o produto não for encontrado
+		verify(produtoMapper, never()).atualizaDoDto(any(), any());
+		verify(produtoRepository, never()).save(any());
+		verify(produtoMapper, never()).toDto(any());
+	}
+	
+	@DisplayName("Deve Lançar uma exception pois o codigo passado na url é diferente do corpo da requisição")
+	@Test
+	public void deveLancarExceptionParaCodigosDiferentes() throws Exception{
+		
+		String codigoUrl = "0000000";
+		String codigoCorpo = "1111111";
+		
+		ProdutoDto dto = new ProdutoDto(codigoCorpo, "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		LocalDateTime dataFixa = LocalDateTime.of(2024, 1, 1, 12, 0);
+
+		Produto entidade = new Produto(1L, "PROD98231", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", dataFixa,
+				dataFixa, true);
+		
+		when(produtoRepository.findByCodigo(codigoUrl)).thenReturn(Optional.of(entidade));
+		
+		CodigoDoProdutoInvalidoException exception = assertThrows(CodigoDoProdutoInvalidoException.class, () ->
+		produtoServiceImp.atualizaProdutoPeloCodigo(codigoUrl, dto));
+		
+		assertEquals(exception.getMessage(), "O código no corpo da requisição não pode ser diferente do código da URL.");
+		
+		verify(produtoMapper, never()).atualizaDoDto(any(), any());
+		verify(produtoRepository, never()).save(any());
+		verify(produtoMapper, never()).toDto(any());
+		
+	}
+
+
 }
