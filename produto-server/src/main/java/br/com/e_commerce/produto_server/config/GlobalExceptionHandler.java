@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.e_commerce.produto_server.dto.response.ErroCampoDto;
 import br.com.e_commerce.produto_server.dto.response.ErroRespostaDto;
+import br.com.e_commerce.produto_server.exception.CodigoDoProdutoInvalidoException;
 import br.com.e_commerce.produto_server.exception.CodigoJaExisteException;
 import br.com.e_commerce.produto_server.exception.CodigoNaoExisteException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,5 +56,11 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.badRequest().body(error);
 	}
 
+	@ExceptionHandler(CodigoDoProdutoInvalidoException.class)
+	public ResponseEntity<ErroRespostaDto> handlerCodigoDoProdutoInvalido(CodigoDoProdutoInvalidoException ex, HttpServletRequest request){
+		ErroRespostaDto erro = new ErroRespostaDto(ex.getMessage(), HttpStatus.BAD_REQUEST.value(), 
+				request.getRequestURI());
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+	}
 	
 }

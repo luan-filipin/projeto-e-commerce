@@ -21,5 +21,5 @@ public interface ProdutoService {
 	
 	void deletaProdutoPeloCodigo(String codigo);
 	
-	
+	ProdutoDto atualizaProdutoPeloCodigo(String codigo, ProdutoDto produtDto);
 }

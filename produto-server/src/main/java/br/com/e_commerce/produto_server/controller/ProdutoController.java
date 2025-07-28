@@ -41,7 +41,6 @@ public class ProdutoController {
 		List<ProdutoDto> produtosCriados = produtoService.criaProdutosEmLote(produtos);		
 		return ResponseEntity.status(HttpStatus.CREATED).body(produtosCriados);
 	}
-	
 	//Procura produto pelo codigo.
 	@GetMapping("/produtos/{codigo}")
 	public ResponseEntity<ProdutoDto> procuraProdutoPeloCodigo(@PathVariable @NotBlank String codigo){
