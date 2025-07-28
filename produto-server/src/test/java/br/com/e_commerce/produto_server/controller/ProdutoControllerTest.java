@@ -252,7 +252,7 @@ public class ProdutoControllerTest {
 
 	}
 	
-	@DisplayName("DELETE Lança uma exception se o codigo nao for passado na URL")
+	@DisplayName("DELETE - Lança uma exception se o codigo nao for passado na URL")
 	@Test
 	public void deveLancarExceptionCasoNaoSejaPassadoCodigNaUrl() throws Exception{
 		
@@ -261,7 +261,7 @@ public class ProdutoControllerTest {
 		
 	}
 	
-	@DisplayName("Deve atualizar um produto pelo codigo com sucesso")
+	@DisplayName("PUT - Deve atualizar um produto pelo codigo com sucesso")
 	@Test
 	public void deveAtualizaProdutoPeloCodigoComSucesso() throws Exception{
 		
@@ -304,7 +304,7 @@ public class ProdutoControllerTest {
 		
 	}
 
-	@DisplayName("Lança uma exception para caso o codigo esteja ausente na Url")
+	@DisplayName("PUT - Lança uma exception para caso o codigo esteja ausente na Url")
 	@Test
 	public void deveLancarExceptionCasoOCodigoDaUrlEstejaAusente()throws Exception{
 		
