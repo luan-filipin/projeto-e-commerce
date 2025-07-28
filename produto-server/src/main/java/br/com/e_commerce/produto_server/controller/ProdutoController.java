@@ -1,5 +1,7 @@
 package br.com.e_commerce.produto_server.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -33,6 +35,13 @@ public class ProdutoController {
 		 ProdutoRespostaCriacaoDto produtoSalvao = produtoService.criaProduto(produtoDto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(produtoSalvao);
 	}
+	
+	@PostMapping("/produtos/lote")
+	public ResponseEntity<List<ProdutoDto>> criaProdutosEmLote(@RequestBody @Valid List<ProdutoDto> produtos){
+		List<ProdutoDto> produtoCriado = produtoService.criaProdutosEmLote(produtos);		
+		return ResponseEntity.status(HttpStatus.CREATED).body(produtoCriado);
+	}
+	
 	//Procura produto pelo codigo.
 	@GetMapping("/produtos/{codigo}")
 	public ResponseEntity<ProdutoDto> procuraProdutoPeloCodigo(@PathVariable @NotBlank String codigo){
