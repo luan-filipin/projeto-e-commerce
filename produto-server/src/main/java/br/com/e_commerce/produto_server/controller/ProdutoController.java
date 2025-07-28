@@ -37,9 +37,9 @@ public class ProdutoController {
 	}
 	
 	@PostMapping("/produtos/lote")
-	public ResponseEntity<List<ProdutoDto>> criaProdutosEmLote(@RequestBody @Valid List<ProdutoDto> produtos){
-		List<ProdutoDto> produtoCriado = produtoService.criaProdutosEmLote(produtos);		
-		return ResponseEntity.status(HttpStatus.CREATED).body(produtoCriado);
+	public ResponseEntity<List<ProdutoDto>> criaProdutosEmLote(@RequestBody  List<@Valid ProdutoDto> produtos){
+		List<ProdutoDto> produtosCriados = produtoService.criaProdutosEmLote(produtos);		
+		return ResponseEntity.status(HttpStatus.CREATED).body(produtosCriados);
 	}
 	
 	//Procura produto pelo codigo.
