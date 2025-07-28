@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,6 +35,7 @@ import br.com.e_commerce.produto_server.config.GlobalExceptionHandler;
 import br.com.e_commerce.produto_server.dto.ProdutoDto;
 import br.com.e_commerce.produto_server.dto.ProdutoRespostaCriacaoDto;
 import br.com.e_commerce.produto_server.entity.Produto;
+import br.com.e_commerce.produto_server.exception.CodigoJaExisteException;
 import br.com.e_commerce.produto_server.exception.CodigoNaoExisteException;
 import br.com.e_commerce.produto_server.repository.ProdutoRepository;
 import br.com.e_commerce.produto_server.service.ProdutoService;
@@ -52,6 +54,7 @@ public class ProdutoControllerTest {
 	@MockitoBean
 	private ProdutoService produtoService;
 
+	@DisplayName("Cria um produto se as informações forem validas.")
 	@Test
 	public void deveCriarProdutoQuandoARequisicaoForValida() throws Exception {
 
@@ -69,6 +72,7 @@ public class ProdutoControllerTest {
 				.andExpect(jsonPath("$.nome").value("Fone Bluetooth X500"));
 	}
 
+	@DisplayName("Retornar erro se as informações forem invalidas.")
 	@Test
 	public void deveRetornarErro400QuandoDadosObrigatoriosForemInvalidos() throws Exception {
 
@@ -78,7 +82,56 @@ public class ProdutoControllerTest {
 		mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(produtoInvalido))).andExpect(status().isBadRequest());
 	}
+	
+	@DisplayName("Cria varios produtos com sucesso.")
+	@Test
+	public void deveCriarProdutosEmLoteComSucesso() throws Exception{
+		
+		ProdutoDto produto1 = new ProdutoDto("PROD98231", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
 
+		ProdutoDto produto2 = new ProdutoDto("PROD98831", "Fone Bluetooth teste",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		List<ProdutoDto> entrada = List.of(produto1, produto2);
+		
+		when(produtoService.criaProdutosEmLote(entrada)).thenReturn(entrada);
+		
+		mockMvc.perform(post("/api/produtos/lote")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(entrada)))
+		.andExpect(status().isCreated())
+		.andExpect(jsonPath("$.length()").value(2))
+		.andExpect(jsonPath("$[0].nome").value("Fone Bluetooth X500"))
+		.andExpect(jsonPath("$[1].nome").value("Fone Bluetooth teste"));
+			
+	}
+	
+	@DisplayName("Deve retornar erro ao tentar criar produtos com códigos já existentes.")
+	@Test
+	public void deveRetornarErroSeAsInformacoesForemInvalidas() throws Exception{
+		
+		ProdutoDto produto1 = new ProdutoDto("PROD123", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		List<ProdutoDto> entradaInvalida = List.of(produto1);
+		
+		when(produtoService.criaProdutosEmLote(entradaInvalida)).thenThrow(new CodigoJaExisteException("Código já existente: PROD123"));
+		
+		
+		mockMvc.perform(post("/api/produtos/lote")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(entradaInvalida)))
+		.andExpect(status().isConflict())
+		.andExpect(jsonPath("$.status").value(409))
+		.andExpect(jsonPath("$.message").value("Código já existente: PROD123"))
+		.andExpect(jsonPath("$.timestamp").exists());
+	}
+
+	@DisplayName("Retorna o produto pelo codigo pesquisado.")
 	@Test
 	public void deveRetornarOprodutoPeloCodigo() throws Exception{
 
@@ -100,6 +153,7 @@ public class ProdutoControllerTest {
 		.andExpect(jsonPath("$.preco").value(produtoEsperado.preco()));
 	}
 
+	@DisplayName("Lança uma exception quando o codigo nao existir no banco.")
 	@Test
 	public void deveRetornar404QuandoCodigoNaoExistir()throws Exception{
 		
@@ -117,6 +171,7 @@ public class ProdutoControllerTest {
 		
 	}
 	
+	@DisplayName("Retorna todos os produtos paginados.")
 	@Test
 	public void deveRetornarTodosOsProdutosPaginados()throws Exception{
 				
@@ -149,6 +204,7 @@ public class ProdutoControllerTest {
 		.andExpect(jsonPath("$.number").value(0));
 	}
 	
+	@DisplayName("Retorna uma lista vazia se nao houver produtos.")
 	@Test
 	public void deveRetornarStatus500QuandoServiceFalharAoListarProdutos()throws Exception{
 		
@@ -167,6 +223,7 @@ public class ProdutoControllerTest {
 		.andExpect(jsonPath("$.totalElements").value(0));
 	}
 	
+	@DisplayName("Deleta um produto pelo codigo com sucesso.")
 	@Test
 	public void deveDeletarOProdutoPeloCodigo()throws Exception{
 		
@@ -179,6 +236,7 @@ public class ProdutoControllerTest {
 		
 	}
 	
+	@DisplayName("Lança uma exception se o codigo nao existir.")
 	@Test
 	public void deveRetornarFalhaSeOCodigoNaoExistir()throws Exception{
 		
