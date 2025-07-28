@@ -5,9 +5,11 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import br.com.e_commerce.produto_server.dto.response.ErroCampoDto;
 import br.com.e_commerce.produto_server.dto.response.ErroRespostaDto;
@@ -62,5 +64,28 @@ public class GlobalExceptionHandler {
 				request.getRequestURI());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
 	}
+	
+	@ExceptionHandler(HandlerMethodValidationException.class)
+	public ResponseEntity<ErroRespostaDto> handleHandlerMethodValidationException(
+	        HandlerMethodValidationException ex,
+	        HttpServletRequest request
+	) {
+	    List<ErroCampoDto> fieldErrors = ex.getAllErrors().stream()
+	            .map(error -> {
+	                String field = (error instanceof FieldError fe) ? fe.getField() : "desconhecido";
+	                return new ErroCampoDto(field, error.getDefaultMessage());
+	            })
+	            .toList();
+
+	    ErroRespostaDto error = new ErroRespostaDto(
+	            "Erro na validação",
+	            HttpStatus.BAD_REQUEST.value(),
+	            request.getRequestURI(),
+	            fieldErrors
+	    );
+
+	    return ResponseEntity.badRequest().body(error);
+	}
+
 	
 }

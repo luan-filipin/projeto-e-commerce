@@ -20,6 +20,7 @@ public class ConfigSecurity {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/api/produtos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/produtos/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/produtos/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

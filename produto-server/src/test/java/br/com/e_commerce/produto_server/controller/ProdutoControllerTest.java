@@ -28,16 +28,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import br.com.e_commerce.produto_server.config.GlobalExceptionHandler;
 import br.com.e_commerce.produto_server.dto.ProdutoDto;
 import br.com.e_commerce.produto_server.dto.ProdutoRespostaCriacaoDto;
-import br.com.e_commerce.produto_server.entity.Produto;
 import br.com.e_commerce.produto_server.exception.CodigoJaExisteException;
 import br.com.e_commerce.produto_server.exception.CodigoNaoExisteException;
-import br.com.e_commerce.produto_server.repository.ProdutoRepository;
 import br.com.e_commerce.produto_server.service.ProdutoService;
 
 @WebMvcTest(ProdutoController.class)
@@ -79,8 +78,10 @@ public class ProdutoControllerTest {
 		ProdutoDto produtoInvalido = new ProdutoDto("PROD001", "", "Descrição válida", new BigDecimal("99.90"), 10,
 				"Categoria válida", "https://exemplo.com/imagem.jpg", true);
 
-		mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(produtoInvalido))).andExpect(status().isBadRequest());
+		mockMvc.perform(post("/api/produtos")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(produtoInvalido)))
+		.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("Cria varios produtos com sucesso.")
@@ -248,5 +249,75 @@ public class ProdutoControllerTest {
 		.andExpect(status().isNotFound())
 		.andExpect(jsonPath("$.status").value(404))
 		.andExpect(jsonPath("$.message").value("O codigo do produto não existe!"));
+
 	}
+	
+	@DisplayName("DELETE Lança uma exception se o codigo nao for passado na URL")
+	@Test
+	public void deveLancarExceptionCasoNaoSejaPassadoCodigNaUrl() throws Exception{
+		
+	    mockMvc.perform(delete("/api/produtos"))
+        .andExpect(status().isMethodNotAllowed());
+		
+	}
+	
+	@DisplayName("Deve atualizar um produto pelo codigo com sucesso")
+	@Test
+	public void deveAtualizaProdutoPeloCodigoComSucesso() throws Exception{
+		
+		String codigo = "PROD98231";
+		
+		ProdutoDto dto = new ProdutoDto(codigo, "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		when(produtoService.atualizaProdutoPeloCodigo(codigo, dto)).thenReturn(dto);
+		
+		mockMvc.perform(put("/api/produtos/{codigo}", codigo)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(dto)))
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.codigo").value("PROD98231"))
+		.andExpect(jsonPath("$.nome").value("Fone Bluetooth X500"))
+		.andExpect(jsonPath("$.preco").value(249.90))
+		.andExpect(jsonPath("$.quantidadeEstoque").value(75))
+		.andExpect(jsonPath("$.ativo").value(true));
+	}
+	
+	@DisplayName("PUT- Deve lançar uma exception caso o corpo possua informações invalidas")
+	@Test
+	public void deveLancarExceptionCasoOCorpoTenhaInformacoesInvalidas() throws Exception{
+		
+		String codigo = "PROD98231";
+		
+		ProdutoDto dto = new ProdutoDto(codigo, "",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+		
+		mockMvc.perform(put("/api/produtos/{codigo}", codigo)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(dto)))
+		.andExpect(status().isBadRequest())
+		.andExpect(jsonPath("$.message").value("Erro na validação"))
+		.andExpect(jsonPath("$.errors[0].field").value("nome"))
+		.andExpect(jsonPath("$.errors[0].message").value("O campo 'nome' é obrigatorio"));;
+		
+	}
+
+	@DisplayName("Lança uma exception para caso o codigo esteja ausente na Url")
+	@Test
+	public void deveLancarExceptionCasoOCodigoDaUrlEstejaAusente()throws Exception{
+		
+		ProdutoDto dto = new ProdutoDto("PROD98231", "Fone Bluetooth X500",
+				"Fones de ouvido sem fio com cancelamento de ruído e bateria de longa duração.",
+				new BigDecimal("249.90"), 75, "Eletrônicos", "https://exemplo.com/imagens/fone-bluetooth.jpg", true);
+
+		
+		mockMvc.perform(put("/api/produtos")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(dto)))
+		.andExpect(status().isMethodNotAllowed());
+		
+	}
+
 }
