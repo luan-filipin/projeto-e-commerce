@@ -25,9 +25,9 @@ public class ConfigSecurity {
 		return httpSecurity.csrf(csrf -> csrf.disable())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(authorize -> authorize
-						.requestMatchers(HttpMethod.GET, "/api/user/teste").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/user/login").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/user/create").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/users/token").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/users").permitAll()
 						.anyRequest().authenticated()
 						)
 				.build();
