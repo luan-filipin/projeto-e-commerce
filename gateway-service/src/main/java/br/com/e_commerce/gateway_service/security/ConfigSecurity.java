@@ -36,8 +36,8 @@ public class ConfigSecurity {
         return http
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authorizeExchange(exchanges -> exchanges
-                .pathMatchers(HttpMethod.POST, "/api/user/login").permitAll()
-                .pathMatchers(HttpMethod.POST, "/api/user/create").permitAll()
+                .pathMatchers(HttpMethod.POST, "/api/users/token").permitAll()
+                .pathMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .anyExchange().authenticated()
             )
             .addFilterAt(authenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
@@ -50,8 +50,8 @@ public class ConfigSecurity {
         // Define que o filtro será aplicado APENAS para rotas que NÃO sejam /login e /create
         ServerWebExchangeMatcher matcher = new NegatedServerWebExchangeMatcher(
             ServerWebExchangeMatchers.pathMatchers(
-                "/api/user/login",
-                "/api/user/create"
+                "/api/users/token",
+                "/api/users"
                 
             )
         );
