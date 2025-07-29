@@ -21,6 +21,7 @@ public class ConfigSecurity {
                 .requestMatchers(HttpMethod.POST, "/api/produtos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/produtos/**").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/produtos/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/produtos/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
