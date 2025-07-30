@@ -25,7 +25,6 @@ import br.com.user_service.service.TokenService;
 import br.com.user_service.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 
 @RestController
