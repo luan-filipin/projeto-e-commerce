@@ -71,13 +71,13 @@ public class ProdutoServiceImp implements ProdutoService {
 	@Override
 	@Transactional
 	public void deletaProdutoPeloCodigo(String codigo) {
-		Produto produto = produtoRepository.findByCodigo(codigo).orElseThrow(() -> new CodigoNaoExisteException());
+		Produto produto = produtoRepository.findByCodigo(codigo).orElseThrow(CodigoNaoExisteException::new);
 		produtoRepository.delete(produto);
 	}
 
 	@Override
 	public ProdutoDto atualizaProdutoPeloCodigo(String codigo, ProdutoDto produtoDto) {
-		Produto produto = produtoRepository.findByCodigo(codigo).orElseThrow(() -> new CodigoNaoExisteException());
+		Produto produto = produtoRepository.findByCodigo(codigo).orElseThrow(CodigoNaoExisteException::new);
 
 		if (!codigo.equals(produtoDto.codigo())) {
 			throw new CodigoDoProdutoInvalidoException();

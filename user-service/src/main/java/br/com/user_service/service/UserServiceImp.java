@@ -2,7 +2,6 @@ package br.com.user_service.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +40,7 @@ public class UserServiceImp implements UserService{
 
 	@Override
 	public ResponseFindByUserDto findUserByLogin(String login) {
-		User user = userRepository.findUserByLogin(login).orElseThrow(() -> new LoginNaoExisteException());
+		User user = userRepository.findUserByLogin(login).orElseThrow(LoginNaoExisteException::new);
 		return responseFindByUserMapper.toDto(user);
 	}
 
