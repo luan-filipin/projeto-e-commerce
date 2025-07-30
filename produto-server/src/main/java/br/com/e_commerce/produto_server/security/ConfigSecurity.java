@@ -12,6 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class ConfigSecurity {
+	
+	private static final String PRODUTOS_ENDPOINT = "/api/produtos/**";
 
 	@Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -19,9 +21,9 @@ public class ConfigSecurity {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.POST, "/api/produtos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/produtos/**").permitAll()
-                .requestMatchers(HttpMethod.PUT, "/api/produtos/**").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/produtos/**").permitAll()
+                .requestMatchers(HttpMethod.GET, PRODUTOS_ENDPOINT).permitAll()
+                .requestMatchers(HttpMethod.PUT, PRODUTOS_ENDPOINT).permitAll()
+                .requestMatchers(HttpMethod.DELETE, PRODUTOS_ENDPOINT).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
