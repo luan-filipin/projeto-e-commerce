@@ -17,6 +17,9 @@ public class GatewayRoutesConfig {
             .route("user-service", r -> r
                     .path("/api/users/**")
                     .uri("lb://user-service"))
+            .route("pedidos-server", r -> r
+                    .path("/api/pedidos/**")
+                    .uri("lb://pedidos-server"))
             .build();
     }
 }
