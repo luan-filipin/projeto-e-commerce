@@ -20,7 +20,6 @@ public class ConfigSecurity {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-            	.requestMatchers(HttpMethod.PUT, "/api/produtos/estoque/movimentar/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/produtos").permitAll()
                 .requestMatchers(HttpMethod.GET, PRODUTOS_ENDPOINT).permitAll()
                 .requestMatchers(HttpMethod.PUT, PRODUTOS_ENDPOINT).permitAll()

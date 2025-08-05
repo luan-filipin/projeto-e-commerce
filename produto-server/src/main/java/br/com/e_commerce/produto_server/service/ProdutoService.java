@@ -22,4 +22,6 @@ public interface ProdutoService {
 	void deletaProdutoPeloCodigo(String codigo);
 	
 	ProdutoDto atualizaProdutoPeloCodigo(String codigo, ProdutoDto produtDto);
+	
+	void baixarEstoque(String codigoProduto, Integer quantidade);
 }

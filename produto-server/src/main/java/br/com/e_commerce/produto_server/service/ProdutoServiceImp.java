@@ -12,6 +12,7 @@ import br.com.e_commerce.produto_server.entity.Produto;
 import br.com.e_commerce.produto_server.exception.CodigoDoProdutoInvalidoException;
 import br.com.e_commerce.produto_server.exception.CodigoJaExisteException;
 import br.com.e_commerce.produto_server.exception.CodigoNaoExisteException;
+import br.com.e_commerce.produto_server.exception.QuantidadeInsuficienteException;
 import br.com.e_commerce.produto_server.mapper.ProdutoMapper;
 import br.com.e_commerce.produto_server.mapper.ProdutoRespostaCriacaoMapper;
 import br.com.e_commerce.produto_server.repository.ProdutoRepository;
@@ -87,5 +88,20 @@ public class ProdutoServiceImp implements ProdutoService {
 		Produto produtoSalvo = produtoRepository.save(produto);
 		return produtoMapper.toDto(produtoSalvo);
 	}
+
+	@Override
+	public void baixarEstoque(String codigoProduto, Integer quantidade) {
+		Produto produto = produtoRepository.findByCodigo(codigoProduto).orElseThrow(CodigoNaoExisteException::new);
+		
+		if(produto.getQuantidadeEstoque() < quantidade) {
+			throw new QuantidadeInsuficienteException();
+		}
+		
+		produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() - quantidade);
+		produtoRepository.save(produto);
+		
+	}
+	
+	
 
 }
