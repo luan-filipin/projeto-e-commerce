@@ -26,9 +26,6 @@ public class ItemPedido {
 	@Column(name = "codigo_produto", nullable = false)
 	private String codigoProduto;
 	
-	@Column(name = "nome_produto", nullable = false)
-	private String nomeProduto;
-	
 	@Positive
 	@Column(name = "preco_unitario", nullable = false)
 	private BigDecimal precoUnitario;

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.br.e_commerce.pedidos_server.dto.CriacaoPedidosDto;
+import com.br.e_commerce.pedidos_server.dto.CriacaoPedidoDto;
 import com.br.e_commerce.pedidos_server.dto.PedidoDto;
 import com.br.e_commerce.pedidos_server.service.PedidoService;
 
@@ -21,8 +21,8 @@ public class PedidoController {
 	private final PedidoService pedidoService;
 
 	@PostMapping("/pedidos")
-	public ResponseEntity<CriacaoPedidosDto> criaPedido(@RequestBody PedidoDto pedidoDto){
-		CriacaoPedidosDto pedido = pedidoService.criaPedido(pedidoDto);		
+	public ResponseEntity<CriacaoPedidoDto> criaPedido(@RequestBody PedidoDto pedidoDto){
+		CriacaoPedidoDto pedido = pedidoService.criaPedido(pedidoDto);		
 		return ResponseEntity.status(HttpStatus.CREATED).body(pedido);
 	}
 }

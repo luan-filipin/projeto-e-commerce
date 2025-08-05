@@ -4,7 +4,6 @@ import java.util.List;
 
 public record PedidoDto(
 		String usuarioLogin,
-		String codigo,
 		List<ItemPedidoDto> itens) {
 
 }

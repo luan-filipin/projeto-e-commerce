@@ -29,9 +29,6 @@ public class Pedido {
 	@GeneratedValue(strategy =  GenerationType.IDENTITY)
 	private Long id;
 	
-	@Column(name = "codigo", nullable = false, unique = true, updatable = false)
-	private String codigo;
-	
 	@Column(name = "usuario_login", nullable = false)
 	private String usuarioLogin;
 	
