@@ -76,7 +76,7 @@ Cadastra novo produto.
 ```
 
 Cria um lista de produtos
-- `GET /api/produtos/lote`
+- `POST /api/produtos/lote`
 ```
 [ 
   {
